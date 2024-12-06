@@ -1,19 +1,17 @@
 <div align="center">
-   <h1>ID Document Recognition Linux SDK</h1>
+   <h1>Face Recognition Linux SDK</h1>
    <img src=https://miniai.live/wp-content/uploads/2024/02/logo_name-1-768x426-1.png alt="MiniAiLive Logo"
    width="300">
 </div>
 
 ## Welcome to the [MiniAiLive](https://www.miniai.live/)!
-Welcome to the ID Document Recognition SDK! This SDK provides powerful tools for recognizing and extracting information from ID documents. The SDK is available for both Windows and Linux platforms and includes an API for integration.
+Check the likelihood that two faces belong to the same person. You will get a confidence score and thresholds to evaluate the similarity. Feel free to use our MiniAI Face Recognition Linux SDK.
 
-Reduce drop-off and boost conversions with ID scanning and verification solutions. Quickly and securely capture, extract, and verify data from diverse ID cards, passports, driver’s licenses, and other documents with our proven, AI-first approach. Designed to fit seamlessly together, our technology can be integrated as a fully-bundled identity document verification solution or as separate modules via developer-friendly mobile or server SDK. Try it out today!
+. Try it out today!
 
 > **Note**
 >
 > - Our SDK is fully on-premise, processing all happens on hosting server and no data leaves server.
-> - 10,000+ document templates covering IDs issued in 200+ countries and territories.
-> - Support of 100+ languages and special characters via sophisticated neural networks.
 
 ## Table of Contents
 
@@ -22,7 +20,7 @@ Reduce drop-off and boost conversions with ID scanning and verification solution
 - [Gradio Demo](#gradio-demo)
 - [Python Test API Example](#python-test-api-example)
 
-## IDSDK Installation Guide
+## FaceSDK Installation Guide
 
 ### Prerequisites
 
@@ -33,7 +31,7 @@ Reduce drop-off and boost conversions with ID scanning and verification solution
 
 ### Installation Steps
 
-1. **Download the ID Document Recognition Linux Server Installer:**
+1. **Download the Face Recognition Linux Server Installer:**
 
    Download the Server installer for your operating system from the following link:
    
@@ -44,7 +42,7 @@ Reduce drop-off and boost conversions with ID scanning and verification solution
    Run the installer and follow the on-screen instructions to complete the installation. Go to the Download folder and run this command.
    ```sh
    $ cd Download
-   $ sudo dpkg -i --force-overwrite MiniAiLive-IDSDK-LinuxServer.deb
+   $ sudo dpkg -i --force-overwrite MiniAiLive-FaceSDK-LinuxServer.deb
    ```
 <div align="center">
    <img src=https://github.com/MiniAiLive/ID-DocumentRecognition-Linux/assets/127708602/5547b656-e5ad-463b-a1b8-4107cdaed556 alt="MiniAiLive Installer">
