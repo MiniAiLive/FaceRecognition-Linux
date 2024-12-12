@@ -7,8 +7,6 @@
 ## Welcome to the [MiniAiLive](https://www.miniai.live/)!
 Check the likelihood that two faces belong to the same person. You will get a confidence score and thresholds to evaluate the similarity. Feel free to use our MiniAI Face Recognition Linux SDK.
 
-. Try it out today!
-
 > **Note**
 >
 > - Our SDK is fully on-premise, processing all happens on hosting server and no data leaves server.
@@ -35,7 +33,7 @@ Check the likelihood that two faces belong to the same person. You will get a co
 
    Download the Server installer for your operating system from the following link:
    
-   [Download the On-premise Server Installer](https://drive.google.com/file/d/1NnZ-Ows3eI8O0TPTbJZcuIYUmVwXr-vV/view?usp=sharing)
+   [Download the On-premise Server Installer](https://drive.google.com/file/d/1DQ1epQVPMQOMBJs_6f-UsJb7Z3bd-jhk/view?usp=sharing)
 
 2. **Install the On-premise Server:**
 
@@ -44,8 +42,9 @@ Check the likelihood that two faces belong to the same person. You will get a co
    $ cd Download
    $ sudo dpkg -i --force-overwrite MiniAiLive-FaceSDK-LinuxServer.deb
    ```
+
 <div align="center">
-   <img src=https://github.com/MiniAiLive/ID-DocumentRecognition-Linux/assets/127708602/5547b656-e5ad-463b-a1b8-4107cdaed556 alt="MiniAiLive Installer">
+   <img src=https://github.com/user-attachments/assets/31c30a88-1ab0-40a3-9115-1be688f790c3 alt="MiniAiLive FaceSDK Installer">
 </div>
    You can refer our Documentation here. https://docs.miniai.live
 
@@ -53,11 +52,11 @@ Check the likelihood that two faces belong to the same person. You will get a co
 
    You can generate the License Request file by using this command:
    ```sh
-   $ cd /opt/miniai/dr-webapi
+   $ cd /opt/miniai/face-rec-service
    $ sudo ./MiRequest request /home/ubuntu/Download/trial_key.miq
    ```
 <div align="center">
-   <img src=https://github.com/MiniAiLive/ID-DocumentRecognition-Linux/assets/127708602/7001cbe2-d246-40bf-acab-12786cc2d2e0 alt="MiniAiLive Installer">
+   <img src=https://github.com/user-attachments/assets/392017fd-7c66-4a7d-86f5-b96d2f32ffed alt="MiniAiLive FaceSDK Installer">
 </div>
    Then you can see the license request file on your directory, and send it to us via email or WhatsApp. We will send the license based on your Unique Request file, then you can upload the license file to allow to use. Refer the below images.
    
@@ -65,7 +64,7 @@ Check the likelihood that two faces belong to the same person. You will get a co
    $ sudo ./MiRequest update /home/ubuntu/Download/trial_30.mis
    ```
 <div align="center">
-   <img src=https://github.com/MiniAiLive/ID-DocumentRecognition-Linux/assets/127708602/e600fd00-895d-48d8-9228-396cd2fc6d98 alt="MiniAiLive Installer">
+   <img src=https://github.com/user-attachments/assets/e178e557-1ce2-4a59-9614-b49bd436cc62 alt="MiniAiLive FaceSDK Installer">
 </div>
 
 4. **Verify Installation:**
@@ -74,51 +73,48 @@ Check the likelihood that two faces belong to the same person. You will get a co
    ```sh
    $ systemctl list-units --state running
    ```
-   If you can see 'Mini-drsvc.service', 'Mini-idsvc.service', the server has been installed successfully. Refer the below image.
+   If you can see 'Mini-facesvc.service', 'Mini-fdsvc.service', the server has been installed successfully. Refer the below image.
 <div align="center">
-   <img src=https://github.com/MiniAiLive/ID-DocumentRecognition-Linux/assets/127708602/18edc1d1-ddf4-48a7-86c8-eb48e01b4317 alt="MiniAiLive Installer">
+   <img src=https://github.com/user-attachments/assets/8c170b6e-07db-49bb-9ec5-dbee7a051339 alt="MiniAiLive FaceSDK Installer">
 </div>
 
-## IDSDK API Details
+## FaceSDK API Details
 
 ### Endpoint
 
-- `POST http://127.0.0.1:8082/api/check_id` ID Document Recognition API
-- `POST http://127.0.0.1:8082/api/check_id_base64` ID Document Recognition API
+- `POST http://127.0.0.1:8083/api/face_detect` Face Detection, Face Attributes API
+- `POST http://127.0.0.1:8083/api/face_detect_base64` Face Detection, Face Attributes API
   
-- `POST http://127.0.0.1:8082/api/check_credit` Bank & Credit Card Reader API
-- `POST http://127.0.0.1:8082/api/check_credit_base64` Bank & Credit Card Reader API
-  
-- `POST http://127.0.0.1:8082/api/check_mrz` MRZ & Barcode Recognition API
-- `POST http://127.0.0.1:8082/api/check_mrz_base64` MRZ & Barcode Recognition API
+- `POST http://127.0.0.1:8083/api/face_match` Face Matching API
+- `POST http://127.0.0.1:8083/api/face_match_base64` Face Matching API
 
 ### Request
 
-- **URL:** `http://127.0.0.1:8082/api/check_id`
+- **URL:** `http://127.0.0.1:8083/api/face_detect`
 - **Method:** `POST`
 - **Form Data:**
   - `image`: The image file (PNG, JPG, etc.) to be analyzed. This should be provided as a file upload.
-<img width="1049" alt="Screenshot 2024-07-16 at 5 12 01 AM" src="https://github.com/user-attachments/assets/fa954d58-d623-4db3-8a65-1df2d5c28baf">
+<img width="1049" alt="Screenshot 2024-07-16 at 5 12 01 AM" src="https://github.com/user-attachments/assets/e05be690-f474-4ad5-b800-ea64ee763461">
 
-- **URL:** `http://127.0.0.1:8082/api/check_id_base64`
+- **URL:** `http://127.0.0.1:8083/api/face_detect_base64`
 - **Method:** `POST`
 - **Raw Data:**
   - `JSON Format`:
     {
        "image": "--base64 image data here--"
     }
-<img width="1049" alt="Screenshot 2024-07-16 at 5 11 34 AM" src="https://github.com/user-attachments/assets/fa6f5e12-0abc-4e5f-a078-f541e3c546a7">
+<img width="1049" alt="Screenshot 2024-07-16 at 5 11 34 AM" src="https://github.com/user-attachments/assets/e05be690-f474-4ad5-b800-ea64ee763461">
 
 ### Response
 
-The API returns a JSON object with the recognized details from the ID document. Here is an example response:
+The API returns a JSON object with the recognized details from the input Face image. Here is an example response:
    <div align="center">
-      <img src="https://github.com/user-attachments/assets/fa954d58-d623-4db3-8a65-1df2d5c28baf" />
+      <img src="https://github.com/user-attachments/assets/e05be690-f474-4ad5-b800-ea64ee763461" />
    </div>
 
 ## Gradio Demo
 
-We have included a Gradio demo to showcase the capabilities of our ID Document Recognition SDK. Gradio is a Python library that allows you to quickly create user interfaces for machine learning models.
+We have included a Gradio demo to showcase the capabilities of our Face Recognition SDK. Gradio is a Python library that allows you to quickly create user interfaces for machine learning models.
 
 ### How to Run the Gradio Demo
 
@@ -127,7 +123,7 @@ We have included a Gradio demo to showcase the capabilities of our ID Document R
    First, you need to install Gradio. You can do this using pip:
 
    ```sh
-   git clone https://github.com/MiniAiLive/ID-DocumentRecognition-Linux-SDK.git
+   git clone https://github.com/MiniAiLive/FaceRecognition-Linux.git
    pip install -r requirement.txt
    cd gradio
    ```
@@ -137,7 +133,7 @@ We have included a Gradio demo to showcase the capabilities of our ID Document R
    ```
 ## Python Test API Example
 
-To help you get started with using the API, here is a comprehensive example of how to interact with the ID Document Recognition API using Python. You can use API with another language you want to use like C++, C#, Ruby, Java, Javascript, and more
+To help you get started with using the API, here is a comprehensive example of how to interact with the Face Recognition API using Python. You can use API with another language you want to use like C++, C#, Ruby, Java, Javascript, and more
 
 ### Prerequisites
 
@@ -152,7 +148,7 @@ This example demonstrates how to send an image file to the API endpoint and proc
 import requests
 
 # URL of the web API endpoint
-url = 'http://127.0.0.1:8082/api/check_id'
+url = 'http://127.0.0.1:8083/api/face_detect'
 
 # Path to the image file you want to send
 image_path = './test_image.jpg'
