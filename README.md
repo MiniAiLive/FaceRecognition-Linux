@@ -103,7 +103,7 @@ Check the likelihood that two faces belong to the same person. You will get a co
     {
        "image": "--base64 image data here--"
     }
-<img width="1049" alt="Screenshot 2024-07-16 at 5 11 34 AM" src="https://github.com/user-attachments/assets/e05be690-f474-4ad5-b800-ea64ee763461">
+<img width="1049" alt="Screenshot 2024-07-16 at 5 11 34 AM" src="https://github.com/user-attachments/assets/70c50c55-3c39-4885-ab9f-8e0c34e525f0">
 
 ### Response
 
