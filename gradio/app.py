@@ -1,142 +1,130 @@
 import gradio as gr
 import os
 import requests
+import json
+from PIL import Image
 
-def id_check(frame):
-    url = "http://127.0.0.1:8082/api/check_id"
+import requests
+import base64
+from PIL import Image
+from io import BytesIO
+
+def face_detect(frame):
+    url = "http://127.0.0.1:8083/api/face_detect"
     files = {'image': open(frame, 'rb')}
     r = requests.post(url=url, files=files)
+    response = r.json()
 
-    html = None
-    images = None
-    mrz = None
+    detections = response.get("detections", {})
+    table_rows = ""
+    face_images = []
 
-    table_value = ""
+    for face_id, details in detections.items():
+        attributes = details.get("attributes", {})
+        # landmarks = details.get("landmarks", [])
+        # position = details.get("position", [])
+        face_base64 = details.get("face", "")
 
-    if r.json().get('MRZ') is not None:
-        mrz = r.json().get('MRZ')
+        # Decode face image
+        face_image = f"<img src='data:image/png;base64,{face_base64}' width='100' />" if face_base64 else "N/A"
 
-    for key, value in r.json().items():
-        if key == 'Status' or key == 'Images' or key == 'MRZ' or key == 'Position':
-            continue
+        # Prepare attributes text without specific keys
+        keys_to_remove = {"Emotion", "ForeheadCovering", "HeadCovering", "Occlusion", "StrongMakeup"}
+        filtered_attributes = {key: value for key, value in attributes.items() if key not in keys_to_remove}
 
-        mrz_value = ''
-        if mrz is not None and mrz.get(key) is not None:
-            mrz_value = mrz[key]
-            del mrz[key]
+        attributes_text = "<br>".join(f"{key}: {value}" for key, value in filtered_attributes.items())
 
-        row_value = ("<tr>"
-                        "<td>{key}</td>"
-                        "<td>{value}</td>"
-                        "<td>{mrz_value}</td>"
-                    "</tr>".format(key=key, value=value, mrz_value=mrz_value))
-        table_value = table_value + row_value
+        # # Prepare landmarks text
+        # landmarks_text = ", ".join(str(landmark) for landmark in landmarks)
 
+        # Add table row for the face
+        table_rows += f"""
+        <tr>
+            <td>{face_id}</td>
+            <td>{face_image}</td>
+            <td>{attributes_text}</td>
+        </tr>
+        """
 
-    if mrz is not None:
-        for key, value in mrz.items():
-            if key == 'MRZ':
-                value = value.replace('<', '&lt;')
-                value = value.replace(',', '<p>')
-
-            row_value = ("<tr>"
-                            "<td>{key}</td>"
-                            "<td>{value}</td>"
-                            "<td>{mrz_value}</td>"
-                        "</tr>".format(key=key, value='', mrz_value=value))
-            table_value = table_value + row_value
-            
-
-    html = ("<table>"
-                "<tr>"
-                    "<th style=""width:20%"">Field</th>"
-                    "<th style=""width:40%"">Value</th>"
-                    "<th style=""width:40%"">MRZ</th>"
-                "</tr>"
-                "{table_value}"
-                "</table>".format(table_value=table_value))
-    
-    table_value = ""
-    for key, value in r.json().items():
-        if key == 'Images':
-            for image_key, image_value in value.items():
-                row_value = ("<tr>"
-                                "<td>{key}</td>"
-                                "<td><img src=""data:image/png;base64,{base64_image} width = '200'  height= '100' /></td>"
-                            "</tr>".format(key=image_key, base64_image=image_value))
-                table_value = table_value + row_value
-
-    images = ("<table>"
-                "<tr>"
-                    "<th>Field</th>"
-                    "<th>Image</th>"
-                "</tr>"
-                "{table_value}"
-                "</table>".format(table_value=table_value))
-    
-    return [html, images]
-
-def bank_credit_check(frame):
-    url = 'http://127.0.0.1:8082/api/check_credit'
-    files = {'image': open(frame, 'rb')}
-    r = requests.post(url=url, files=files)
-
-    html = None
-    table_value = ""
-
-    for key, value in r.json().items():
-        if key == 'Status' or key == 'Images':
-            continue
-
-        row_value = ("<tr>"
-                        "<td>{key}</td>"
-                        "<td>{value}</td>"
-                    "</tr>".format(key=key, value=value))
-        table_value = table_value + row_value
-
-    html = ("<table>"
-                "<tr>"
-                    "<th style=""width:20%"">Field</th>"
-                    "<th style=""width:40%"">Value</th>"
-                "</tr>"
-                "{table_value}"
-                "</table>".format(table_value=table_value))
-        
+    # Create final HTML table
+    html = f"""
+    <table border="1" style="border-collapse: collapse; width: 100%;">
+        <tr>
+            <th>Face ID</th>
+            <th>Face Image</th>
+            <th>Attributes</th>
+        </tr>
+        {table_rows}
+    </table>
+    """
     return html
 
-def mrz_barcode_check(frame):
-    url = 'http://127.0.0.1:8082/api/check_mrz'
-    files = {'image': open(frame, 'rb')}
+def face_match(frame1, frame2):
+    url = "http://127.0.0.1:8083/api/face_match"
+    files = {'image1': open(frame1, 'rb'), 'image2': open(frame2, 'rb')}
     r = requests.post(url=url, files=files)
+    response = r.json()
 
-    html = None
-    mrz = None
+    detections = response.get("detections", [])
+    matches = response.get("match", [])
+    detection_rows = ""
+    match_rows = ""
 
-    table_value = ""
+    # Process detections
+    for detection in detections:
+        face_image = detection.get("face", "")
+        face_img_tag = f"<img src='data:image/png;base64,{face_image}' width='100' />" if face_image else "N/A"
+        first_face_index = detection.get("firstFaceIndex", "N/A")
+        second_face_index = detection.get("secondFaceIndex", "N/A")
 
-    if r.json().get('MRZ') is not None:
-        mrz = r.json().get('MRZ')
+        detection_rows += f"""
+        <tr>
+            <td>{first_face_index}</td>
+            <td>{second_face_index}</td>
+            <td>{face_img_tag}</td>
+        </tr>
+        """
 
-    # Iterate through the MRZ data and print each key and item
-    for key, value in mrz.items():
-        if key == 'MRZ Code':
-            value = value.replace('<', '&lt;')
-            value = value.replace(',', '<p>')
-        row_value = ("<tr>"
-                "<td>{key}</td>"
-                "<td>{value}</td>"
-            "</tr>".format(key=key, value=value))
-        table_value = table_value + row_value
+    # Process matches
+    for match in matches:
+        first_face_index = match.get("firstFaceIndex", "N/A")
+        second_face_index = match.get("secondFaceIndex", "N/A")
+        similarity = match.get("similarity", "N/A")
 
-    html = ("<table>"
-                "<tr>"
-                    "<th style=""width:20%"">Field</th>"
-                    "<th style=""width:40%"">Value</th>"
-                "</tr>"
-                "{table_value}"
-                "</table>".format(table_value=table_value))
-        
-    return html
+        match_rows += f"""
+        <tr>
+            <td>{first_face_index}</td>
+            <td>{second_face_index}</td>
+            <td>{similarity:.6f}</td>
+        </tr>
+        """
+
+    # Create HTML tables
+    detections_table = f"""
+    <h3>Face Detection</h3>
+    <table border="1" style="border-collapse: collapse; width: 100%;">
+        <tr>
+            <th>First Face Index</th>
+            <th>Second Face Index</th>
+            <th>Face Image</th>
+        </tr>
+        {detection_rows}
+    </table>
+    """
+
+    matches_table = f"""
+    <h3>Matching Results</h3>
+    <table border="1" style="border-collapse: collapse; width: 100%;">
+        <tr>
+            <th>First Face Index</th>
+            <th>Second Face Index</th>
+            <th>Similarity</th>
+        </tr>
+        {match_rows}
+    </table>
+    """
+
+    return detections_table + matches_table
 
 # APP Interface
 with gr.Blocks() as MiniAIdemo:
@@ -145,70 +133,71 @@ with gr.Blocks() as MiniAIdemo:
         <a href="https://miniai.live" style="display: flex; align-items: center;">
             <img src="https://miniai.live/wp-content/uploads/2024/02/logo_name-1-768x426-1.png" style="width: 18%; margin-right: 15px;"/>
             <div>
-                <p style="font-size: 50px; font-weight: bold; margin-right: 20px;">IDSDK Web Online Demo</p>
+                <p style="font-size: 40px; font-weight: bold; margin-right: 20px;">FaceRecognition SDK Demo</p>
+                <p style="font-size: 20px; margin-right: 0;">Experience our NIST FRVT Top Ranked FaceRecognition, iBeta 2 Certified Face Liveness Detection Engine</p>
             </div>
         </a>
-
         <br/>
-        <ul>
-            <li style="font-size: 18px;">Visit and learn more about our Service : <a href="https://miniai.live" target="_blank" style="font-size: 18px;">https://www.miniai.live</a></li>
-            <li style="font-size: 18px;">Check our SDK for cross-platform from Github : <a href="https://github.com/MiniAiLive" target="_blank" style="font-size: 18px;">https://github.com/MiniAiLive</a></li>
-            <li style="font-size: 18px;">Quick view our Youtube Demo Video : <a href="https://www.youtube.com/@miniailive" target="_blank" style="font-size: 18px;">MiniAiLive Youtube Channel</a></li>
-            <li style="font-size: 18px;">Demo with Android device from Google Play : <a href="https://play.google.com/store/apps/dev?id=5831076207730531667" target="_blank" style="font-size: 18px;">MiniAiLive Google Play</a></li>
-        </ul>
+        <div style="display: flex; justify-content: center; align-items: center;"> 
+           <table style="text-align: center;">
+              <tr>
+                 <td style="text-align: center; vertical-align: middle;"><a href="https://github.com/MiniAiLive"><img src="https://miniai.live/wp-content/uploads/2024/10/new_git-1-300x67.png" style="height: 50px; margin-right: 5px;" title="GITHUB"/></a></td> 
+                 <td style="text-align: center; vertical-align: middle;"><a href="https://huggingface.co/MiniAiLive"><img src="https://miniai.live/wp-content/uploads/2024/10/new_hugging-1-300x67.png" style="height: 50px; margin-right: 5px;" title="HuggingFace"/></a></td> 
+                 <td style="text-align: center; vertical-align: middle;"><a href="https://demo.miniai.live"><img src="https://miniai.live/wp-content/uploads/2024/10/new_gradio-300x67.png" style="height: 50px; margin-right: 5px;" title="Gradio"/></a></td> 
+              </tr> 
+              <tr>
+                 <td style="text-align: center; vertical-align: middle;"><a href="https://docs.miniai.live/"><img src="https://miniai.live/wp-content/uploads/2024/10/a-300x70.png" style="height: 50px; margin-right: 5px;" title="Documentation"/></a></td> 
+                 <td style="text-align: center; vertical-align: middle;"><a href="https://www.youtube.com/@miniailive"><img src="https://miniai.live/wp-content/uploads/2024/10/Untitled-1-300x70.png" style="height: 50px; margin-right: 5px;" title="Youtube"/></a></td> 
+                 <td style="text-align: center; vertical-align: middle;"><a href="https://play.google.com/store/apps/dev?id=5831076207730531667"><img src="https://miniai.live/wp-content/uploads/2024/10/googleplay-300x62.png" style="height: 50px; margin-right: 5px;" title="Google Play"/></a></td>
+              </tr>
+           </table>
+        </div>
         <br/>
         """
     )
     with gr.Tabs():
-        with gr.TabItem("ID Card Recognition"):
+        with gr.TabItem("Face Detection"):
             with gr.Row():
-                with gr.Column(scale=3):
-                    im_id_input = gr.Image(type='filepath', height=300)
+                with gr.Column():
+                    im_detect_input = gr.Image(type='filepath', height=300)
                     gr.Examples(
                         [
-                            os.path.join(os.path.dirname(__file__), "images/id/demo1.jpg"),
-                            os.path.join(os.path.dirname(__file__), "images/id/demo2.png"),
-                            os.path.join(os.path.dirname(__file__), "images/id/demo3.png"),
+                            os.path.join(os.path.dirname(__file__), "images/img1.jpg"),
+                            os.path.join(os.path.dirname(__file__), "images/img2.jpg"),
+                            os.path.join(os.path.dirname(__file__), "images/img3.jpg"),
                         ],
-                        inputs=im_id_input
+                        inputs=im_detect_input
                     )
-                    btn_f_id = gr.Button("Analysis Document", variant='primary')
-                with gr.Column(scale=5):
-                    txt_id_output = gr.HTML()
-                with gr.Column(scale=2):
-                    im_id_output = gr.HTML()
-            btn_f_id.click(id_check, inputs=im_id_input, outputs=[txt_id_output, im_id_output])
-        with gr.TabItem("Bank & Credit Card Recognition"):
+                    btn_f_detect = gr.Button("Detect", variant='primary')
+                with gr.Column():
+                    txt_detect_output = gr.HTML()
+            btn_f_detect.click(face_detect, inputs=im_detect_input, outputs=txt_detect_output)
+        with gr.Tab("Face Recognition"):
             with gr.Row():
-                with gr.Column(scale=3):
-                    im_card_input = gr.Image(type='filepath', height=300)
+                with gr.Column():
+                    im_match_in1 = gr.Image(type='filepath', height=300)
                     gr.Examples(
                         [
-                            os.path.join(os.path.dirname(__file__), "images/band_credit_card/demo1.jpg"),
-                            os.path.join(os.path.dirname(__file__), "images/band_credit_card/demo2.png"),
-                            os.path.join(os.path.dirname(__file__), "images/band_credit_card/demo3.png"), 
+                            "images/img2.jpg",
+                            "images/img3.jpg",
+                            "images/img4.jpg",
                         ],
-                        inputs=im_card_input
+                        inputs=im_match_in1
                     )
-                    btn_f_card = gr.Button("Analysis Document", variant='primary')
-                with gr.Column(scale=5):
-                    txt_card_output = gr.HTML()
-            btn_f_card.click(bank_credit_check, inputs=im_card_input, outputs=txt_card_output)
-        with gr.TabItem("MRZ & Barcode Recognition"):
-            with gr.Row():
-                with gr.Column(scale=3):
-                    im_mrz_input = gr.Image(type='filepath', height=300)
+                with gr.Column():
+                    im_match_in2 = gr.Image(type='filepath', height=300)
                     gr.Examples(
                         [
-                            os.path.join(os.path.dirname(__file__), "images/mrz_barcode/demo1.png"),
-                            os.path.join(os.path.dirname(__file__), "images/mrz_barcode/demo2.png"), 
+                            "images/img5.jpg",
+                            "images/img6.jpg",
+                            "images/img7.jpg",
                         ],
-                        inputs=im_mrz_input
+                        inputs=im_match_in2
                     )
-                    btn_f_mrz = gr.Button("Analysis Document", variant='primary')
-                with gr.Column(scale=5):
-                    txt_mrz_output = gr.HTML()
-            btn_f_mrz.click(mrz_barcode_check, inputs=im_mrz_input, outputs=txt_mrz_output)
-
+                with gr.Column():
+                    txt_match_out = gr.HTML()
+            btn_f_match = gr.Button("Check Comparing!", variant='primary')
+            btn_f_match.click(face_match, inputs=[im_match_in1, im_match_in2], outputs=txt_match_out)
+                
 if __name__ == "__main__":
-    MiniAIdemo.launch(server_port=8083, server_name="0.0.0.0")
+    MiniAIdemo.launch(server_port=8085, server_name="0.0.0.0")
